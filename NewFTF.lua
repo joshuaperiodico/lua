@@ -1171,7 +1171,7 @@ exitstoggle = true
 
 neverfailtoggle = true
 autointeracttoggle = true
-autoplaytoggle = true
+autoplaytoggle = false
 
 -- Call ESP function on start
 reloadESP()
