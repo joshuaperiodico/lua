@@ -1183,24 +1183,47 @@ end
 
 function getBestPC()
 	local map = game.ReplicatedStorage.CurrentMap.Value
-	local result = {}
-	if map then
-		for _, item in ipairs(map:GetChildren()) do
-			if item.Name == "ComputerTable" and item:FindFirstChild("Screen") then
-				table.insert(result, {pc = item})
+	local beast = nil
+
+	-- Try to find the beast
+	for _, player in pairs(game.Players:GetPlayers()) do
+		if player.Character and player.Character:FindFirstChild("BeastPowers") then
+			beast = player.Character
+			break
+		end
+	end
+
+	if not map or not beast or not beast:FindFirstChild("HumanoidRootPart") then
+		return nil
+	end
+
+	local bestPC = nil
+	local farthestDistance = -math.huge
+
+	for _, item in ipairs(map:GetChildren()) do
+		if item.Name == "ComputerTable" and item:FindFirstChild("Screen") then
+			local pcPos = item.Screen.Position
+			local beastPos = beast.HumanoidRootPart.Position
+			local distance = (pcPos - beastPos).Magnitude
+
+			if distance > farthestDistance then
+				farthestDistance = distance
+				bestPC = item
 			end
 		end
 	end
-	return result
+
+	return bestPC
 end
+
 
 BestPC = nil
 
 spawn(function()
 	while true do
-		local result = getBestPC()
-		if result and result[1] and result[1].pc then
-			BestPC = result[1].pc
+		local pc = getBestPC()
+		if pc then
+			BestPC = pc
 			print("[DEV] ✅ BestPC assigned:", BestPC.Name)
 		else
 			BestPC = nil
@@ -1209,6 +1232,7 @@ spawn(function()
 		wait(1)
 	end
 end)
+
 
 -- Create Teleport Button once
 if not game.Players.LocalPlayer.PlayerGui:FindFirstChild("BestPCGui") then
