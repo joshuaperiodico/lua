@@ -1162,19 +1162,6 @@ end
 	end
 end)
 
-
--- Wait until all toggle variables and reloadESP function exist
-repeat task.wait() until
-    podstoggle ~= nil and
-    pctoggle ~= nil and
-    playertoggle ~= nil and
-    bestpctoggle ~= nil and
-    exitstoggle ~= nil and
-    neverfailtoggle ~= nil and
-    autointeracttoggle ~= nil and
-    autoplaytoggle ~= nil and
-    typeof(reloadESP) == "function"
-
 -- Enable all features
 podstoggle = true
 pctoggle = true
