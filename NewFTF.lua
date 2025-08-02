@@ -1215,13 +1215,22 @@ end
 -- Teleport logic
 local function teleportToBestPC()
 	local root = getRoot()
-	if BestPC and BestPC:FindFirstChild("ComputerScreen") then
+	if BestPC and BestPC:FindFirstChild("Screen") then
 		print("[DEV] ✅ Teleporting to:", BestPC.Name)
-		root.CFrame = BestPC.ComputerScreen.CFrame + Vector3.new(0, 5, 0)
+		root.CFrame = BestPC.Screen.CFrame + Vector3.new(0, 5, 0)
 	else
-		warn("[DEV] ❌ BestPC is nil or missing 'ComputerScreen'")
+		warn("[DEV] ❌ BestPC is nil or missing 'Screen'")
 	end
 end
+
+local result = getBestPC()
+if result and result[1] and result[1].pc and result[1].pc:FindFirstChild("Screen") then
+	getgenv().BestPC = result[1].pc
+	print("[DEV] ✅ BestPC assigned:", BestPC.Name)
+else
+	warn("[DEV] ❌ getBestPC() returned invalid PC or missing Screen")
+end
+
 
 tpButton.MouseButton1Click:Connect(teleportToBestPC)
 
