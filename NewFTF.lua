@@ -1162,32 +1162,30 @@ end
 	end
 end)
 
--- Enable all features
+-- Auto-enable all ESP and Tools features
 podstoggle = true
 pctoggle = true
 playertoggle = true
 bestpctoggle = true
 exitstoggle = true
+
 neverfailtoggle = true
 autointeracttoggle = true
 autoplaytoggle = true
 
--- Remove GUI (CheatButton and FTFHAX if they exist)
-pcall(function()
-    if FTFHAX then FTFHAX:Destroy() end
-    if CheatButton then CheatButton:Destroy() end
-    if BeastCamButton then BeastCamButton:Destroy() end
-end)
+-- Call ESP function on start
+reloadESP()
 
--- Call reloadESP on start
-task.spawn(function()
-    reloadESP()
-end)
+-- Optionally hide entire UI
+FTFHAX.Enabled = false
 
--- Re-execute on character spawn
-game.Players.LocalPlayer.CharacterAdded:Connect(function()
-    task.wait(1)
-    reloadESP()
-end)
+-- If you only want to hide specific parts
+MainMenuWindow.Visible = false
+ESPMenuWindow.Visible = false
+ToolsMenuWindow.Visible = false
+MenusTabFrame.Visible = false -- this is the floating toggle button
 
+-- Optionally remove Beast Cam functionality if it's handled elsewhere
+BeastCamButton.Visible = false
+beastcamtoggle = false
 
