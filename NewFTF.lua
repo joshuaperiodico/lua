@@ -1189,3 +1189,64 @@ MenusTabFrame.Visible = false -- this is the floating toggle button
 BeastCamButton.Visible = false
 beastcamtoggle = false
 
+-- Create custom floating button
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "BestPCTeleportGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+local tpButton = Instance.new("TextButton")
+tpButton.Name = "TPBestPCButton"
+tpButton.Size = UDim2.new(0, 160, 0, 40)
+tpButton.Position = UDim2.new(0, 10, 0, 100)
+tpButton.BackgroundColor3 = Color3.fromRGB(80, 170, 255)
+tpButton.BorderSizePixel = 0
+tpButton.Text = "🚀 TP to Best PC"
+tpButton.TextColor3 = Color3.new(1, 1, 1)
+tpButton.Font = Enum.Font.GothamBold
+tpButton.TextSize = 14
+tpButton.AutoButtonColor = true
+tpButton.Draggable = true
+tpButton.Active = true
+tpButton.Parent = screenGui
+
+
+local function getBestPC()
+    local bestPC = nil
+    local shortestDistance = math.huge
+    local root = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+    if not root then return nil end
+
+    for _, pc in pairs(workspace:GetDescendants()) do
+        if pc.Name == "ComputerTable" and pc:IsA("Model") then
+            local screen = pc:FindFirstChild("ComputerScreen")
+            if screen then
+                local dist = (screen.Position - root.Position).Magnitude
+                if dist < shortestDistance then
+                    bestPC = screen
+                    shortestDistance = dist
+                end
+            end
+        end
+    end
+
+    return bestPC
+end
+
+local function teleportToBestPC()
+    local char = game.Players.LocalPlayer.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    local pc = getBestPC()
+
+    if root and pc then
+        root.CFrame = pc.CFrame + Vector3.new(0, 5, 0)
+    else
+        warn("❌ Could not teleport to Best PC.")
+    end
+end
+
+tpButton.MouseButton1Click:Connect(function()
+    teleportToBestPC()
+end)
+
