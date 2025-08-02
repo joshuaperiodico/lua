@@ -1175,64 +1175,74 @@ autoplaytoggle = true
 
 -- Call ESP function on start
 reloadESP()
--- Store the best PC so we can teleport to it later
-local result = getBestPC()
-if result and result[1] and result[1].pc then
-    getgenv().BestPC = result[1].pc
-    print("[DEV] ✅ BestPC assigned:", BestPC.Name)
-else
-    warn("[DEV] ❌ Failed to assign BestPC")
+function getRoot()
+	local player = game.Players.LocalPlayer
+	local character = player.Character or player.CharacterAdded:Wait()
+	return character:WaitForChild("HumanoidRootPart", 2)
 end
 
--- Create a teleport button to go to BestPC
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-local PlayerGui = player:WaitForChild("PlayerGui")
-
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "TeleportBestPCGui"
-screenGui.ResetOnSpawn = false
-screenGui.Parent = PlayerGui
-
-local tpButton = Instance.new("TextButton")
-tpButton.Size = UDim2.new(0, 180, 0, 50)
-tpButton.Position = UDim2.new(0.5, -90, 0.9, 0)
-tpButton.BackgroundColor3 = Color3.fromRGB(40, 150, 255)
-tpButton.Text = "Teleport to Best PC"
-tpButton.TextColor3 = Color3.new(1, 1, 1)
-tpButton.Font = Enum.Font.SourceSansBold
-tpButton.TextSize = 18
-tpButton.Name = "TeleportButton"
-tpButton.Parent = screenGui
-print("[DEV] ✅ Teleport button created")
-
--- Function to get character's root
-local function getRoot()
-	local char = player.Character or player.CharacterAdded:Wait()
-	return char:WaitForChild("HumanoidRootPart", 5)
-end
-
--- Teleport logic
-local function teleportToBestPC()
-	local root = getRoot()
-	if BestPC and BestPC:FindFirstChild("Screen") then
-		print("[DEV] ✅ Teleporting to:", BestPC.Name)
-		root.CFrame = BestPC.Screen.CFrame + Vector3.new(0, 5, 0)
-	else
-		warn("[DEV] ❌ BestPC is nil or missing 'Screen'")
+function getBestPC()
+	local map = game.ReplicatedStorage.CurrentMap.Value
+	local result = {}
+	if map then
+		for _, item in ipairs(map:GetChildren()) do
+			if item.Name == "ComputerTable" and item:FindFirstChild("Screen") then
+				table.insert(result, {pc = item})
+			end
+		end
 	end
+	return result
 end
 
-local result = getBestPC()
-if result and result[1] and result[1].pc and result[1].pc:FindFirstChild("Screen") then
-	getgenv().BestPC = result[1].pc
-	print("[DEV] ✅ BestPC assigned:", BestPC.Name)
-else
-	warn("[DEV] ❌ getBestPC() returned invalid PC or missing Screen")
+BestPC = nil
+
+spawn(function()
+	while true do
+		local result = getBestPC()
+		if result and result[1] and result[1].pc then
+			BestPC = result[1].pc
+			print("[DEV] ✅ BestPC assigned:", BestPC.Name)
+		else
+			BestPC = nil
+			print("[DEV] ❌ No BestPC found")
+		end
+		wait(1)
+	end
+end)
+
+-- Create Teleport Button once
+if not game.Players.LocalPlayer.PlayerGui:FindFirstChild("BestPCGui") then
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "BestPCGui"
+	gui.ResetOnSpawn = false
+	gui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.new(0, 80, 0, 80)
+	button.Position = UDim2.new(0, 10, 0, 80)
+	button.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+	button.Text = "Best PC"
+	button.Font = Enum.Font.GothamBold
+	button.TextColor3 = Color3.new(1,1,1)
+	button.TextScaled = true
+	button.BorderSizePixel = 0
+	button.Parent = gui
+
+	print("[DEV] 🟦 Teleport button created")
+
+	button.MouseButton1Click:Connect(function()
+		local root = getRoot()
+		if BestPC and BestPC:FindFirstChild("Screen") then
+			local screen = BestPC.Screen
+			local offset = screen.CFrame.LookVector * -3 + Vector3.new(0, 2.5, 0)
+			root.CFrame = screen.CFrame + offset
+			print("[DEV] ✅ Teleported to Best PC:", BestPC.Name)
+		else
+			warn("[DEV] ❌ BestPC is nil or missing 'Screen'")
+		end
+	end)
 end
 
-
-tpButton.MouseButton1Click:Connect(teleportToBestPC)
 
 
 -- Optionally hide entire UI
