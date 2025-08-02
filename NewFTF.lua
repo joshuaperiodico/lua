@@ -1163,7 +1163,19 @@ end
 end)
 
 
--- Auto-enable toggles
+-- Wait until all toggle variables and reloadESP function exist
+repeat task.wait() until
+    podstoggle ~= nil and
+    pctoggle ~= nil and
+    playertoggle ~= nil and
+    bestpctoggle ~= nil and
+    exitstoggle ~= nil and
+    neverfailtoggle ~= nil and
+    autointeracttoggle ~= nil and
+    autoplaytoggle ~= nil and
+    typeof(reloadESP) == "function"
+
+-- Enable all features
 podstoggle = true
 pctoggle = true
 playertoggle = true
@@ -1173,32 +1185,22 @@ neverfailtoggle = true
 autointeracttoggle = true
 autoplaytoggle = true
 
--- Optional: change button color logic removed since no buttons
-
--- Remove BeastCam logic (if present)
--- BeastCamButton:Destroy() or any BeastCamButton.MouseButton1Down:Connect() should be removed entirely
-
--- Remove GUI elements (if still being created somewhere)
-if FTFHAX then
-    FTFHAX:Destroy()
-end
-
--- Remove toggle button
-if CheatButton then
-    CheatButton:Destroy()
-end
-
--- Auto call reloadESP on start and character spawn
-task.spawn(function()
-    if reloadESP then
-        reloadESP()
-    end
+-- Remove GUI (CheatButton and FTFHAX if they exist)
+pcall(function()
+    if FTFHAX then FTFHAX:Destroy() end
+    if CheatButton then CheatButton:Destroy() end
+    if BeastCamButton then BeastCamButton:Destroy() end
 end)
 
+-- Call reloadESP on start
+task.spawn(function()
+    reloadESP()
+end)
+
+-- Re-execute on character spawn
 game.Players.LocalPlayer.CharacterAdded:Connect(function()
     task.wait(1)
-    if reloadESP then
-        reloadESP()
-    end
+    reloadESP()
 end)
+
 
