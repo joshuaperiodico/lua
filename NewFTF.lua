@@ -1210,53 +1210,65 @@ tpButton.Draggable = true
 tpButton.Active = true
 tpButton.Parent = screenGui
 
+-- ✅ Declare BestPC globally
+getgenv().BestPC = nil
 
-local function waitForHumanoidRootPart(timeout)
-	local char = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
-	local start = tick()
-	while tick() - start < (timeout or 5) do
-		local root = char:FindFirstChild("HumanoidRootPart")
-		if root then return root end
-		task.wait(0.1)
+-- ✅ Make sure reloadESP sets BestPC somewhere else in your script!
+-- e.g., BestPC = <somePartYouFound>
+
+-- ✅ Create teleport button UI
+local ScreenGui = Instance.new("ScreenGui", game.Players.LocalPlayer:WaitForChild("PlayerGui"))
+ScreenGui.Name = "TeleportUI"
+
+local tpButton = Instance.new("TextButton")
+tpButton.Size = UDim2.new(0, 150, 0, 50)
+tpButton.Position = UDim2.new(0.5, -75, 0.9, 0) -- bottom center
+tpButton.BackgroundColor3 = Color3.fromRGB(40, 150, 255)
+tpButton.Text = "Teleport to Best PC"
+tpButton.TextColor3 = Color3.new(1, 1, 1)
+tpButton.Font = Enum.Font.SourceSansBold
+tpButton.TextSize = 18
+tpButton.Parent = ScreenGui
+
+print("[✅ DEBUG] Teleport button created and visible")
+
+-- ✅ Waits for character HumanoidRootPart
+local function waitForCharacter()
+	local player = game.Players.LocalPlayer
+	if not player.Character then
+		print("[ℹ️ DEBUG] Waiting for character to spawn...")
+		player.CharacterAdded:Wait()
 	end
-	return nil
+	repeat task.wait() until player.Character:FindFirstChild("HumanoidRootPart")
+	print("[✅ DEBUG] Character and HumanoidRootPart found")
+	return player.Character:FindFirstChild("HumanoidRootPart")
 end
 
-local function getBestPC()
-	local bestPCPart = nil
-	local shortestDistance = math.huge
-	local root = waitForHumanoidRootPart(5)
-	if not root then return nil end
-
-	for _, model in pairs(workspace:GetDescendants()) do
-		if model:IsA("Model") and model.Name == "ComputerTable" then
-			local screen = model:FindFirstChild("ComputerScreen")
-			if screen then
-				local dist = (screen.Position - root.Position).Magnitude
-				if dist < shortestDistance then
-					bestPCPart = screen
-					shortestDistance = dist
-				end
-			end
-		end
-	end
-
-	return bestPCPart
-end
-
+-- ✅ Teleport logic with debugging
 local function teleportToBestPC()
-	local root = waitForHumanoidRootPart(5)
-	local pcPart = getBestPC()
+	local root = waitForCharacter()
 
-	if root and pcPart then
-		root.CFrame = pcPart.CFrame + Vector3.new(0, 5, 0)
+	if BestPC then
+		if BestPC:IsDescendantOf(game.Workspace) then
+			if BestPC:FindFirstChild("ComputerScreen") then
+				local targetCFrame = BestPC.ComputerScreen.CFrame + Vector3.new(0, 5, 0)
+				print("[✅ DEBUG] BestPC found, teleporting to CFrame:", targetCFrame.Position)
+				root.CFrame = targetCFrame
+				print("✅ Teleported to Best PC successfully")
+			else
+				warn("[❌ DEBUG] BestPC exists but has no ComputerScreen child!")
+			end
+		else
+			warn("[❌ DEBUG] BestPC reference exists but is not in Workspace!")
+		end
 	else
-		warn("❌ Could not teleport to Best PC.")
+		warn("[❌ DEBUG] BestPC is nil, cannot teleport!")
 	end
 end
 
-
+-- ✅ Connect button to teleport function
 tpButton.MouseButton1Click:Connect(function()
-    teleportToBestPC()
+	print("[🖱️ DEBUG] Teleport button clicked")
+	teleportToBestPC()
 end)
 
