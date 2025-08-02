@@ -1218,7 +1218,7 @@ if not game.Players.LocalPlayer.PlayerGui:FindFirstChild("BestPCGui") then
 	gui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
 	local button = Instance.new("TextButton")
-	button.Size = UDim2.new(0, 80, 0, 80)
+	button.Size = UDim2.new(0, 60, 0, 30) -- smaller size
 	button.Position = UDim2.new(0, 10, 0, 80)
 	button.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 	button.Text = "Best PC"
@@ -1226,16 +1226,29 @@ if not game.Players.LocalPlayer.PlayerGui:FindFirstChild("BestPCGui") then
 	button.TextColor3 = Color3.new(1,1,1)
 	button.TextScaled = true
 	button.BorderSizePixel = 0
+	button.AutoButtonColor = true
 	button.Parent = gui
+	
+	-- Make it draggable
+	local dragFrame = Instance.new("Frame")
+	dragFrame.Size = button.Size
+	dragFrame.Position = button.Position
+	dragFrame.BackgroundTransparency = 1
+	dragFrame.Parent = gui
+	button.Parent = dragFrame
+	
+	dragFrame.Active = true
+	dragFrame.Draggable = true
 
 	print("[DEV] 🟦 Teleport button created")
 
 	button.MouseButton1Click:Connect(function()
 		local root = getRoot()
 		if BestPC and BestPC:FindFirstChild("Screen") then
-			local screen = BestPC.Screen
-			local offset = screen.CFrame.LookVector * -3 + Vector3.new(0, 2.5, 0)
-			root.CFrame = screen.CFrame + offset
+			local primaryPart = BestPC:FindFirstChild("Screen") or BestPC:FindFirstChildWhichIsA("BasePart")
+			local frontOffset = primaryPart.CFrame.LookVector * -4 + Vector3.new(0, 2, 0)
+			root.CFrame = primaryPart.CFrame + frontOffset
+
 			print("[DEV] ✅ Teleported to Best PC:", BestPC.Name)
 		else
 			warn("[DEV] ❌ BestPC is nil or missing 'Screen'")
