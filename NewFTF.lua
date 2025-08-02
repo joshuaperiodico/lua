@@ -1217,28 +1217,60 @@ if not game.Players.LocalPlayer.PlayerGui:FindFirstChild("BestPCGui") then
 	gui.ResetOnSpawn = false
 	gui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
+	local gui = Instance.new("ScreenGui", game.Players.LocalPlayer:WaitForChild("PlayerGui"))
+	gui.Name = "BestPCGui"
+	
 	local button = Instance.new("TextButton")
-	button.Size = UDim2.new(0, 60, 0, 30) -- smaller size
+	button.Size = UDim2.new(0, 60, 0, 30)
 	button.Position = UDim2.new(0, 10, 0, 80)
 	button.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 	button.Text = "Best PC"
 	button.Font = Enum.Font.GothamBold
-	button.TextColor3 = Color3.new(1,1,1)
+	button.TextColor3 = Color3.new(1, 1, 1)
 	button.TextScaled = true
 	button.BorderSizePixel = 0
 	button.AutoButtonColor = true
 	button.Parent = gui
+
+	-- Drag logic
+	local dragging
+	local dragInput
+	local dragStart
+	local startPos
 	
-	-- Make it draggable
-	local dragFrame = Instance.new("Frame")
-	dragFrame.Size = button.Size
-	dragFrame.Position = button.Position
-	dragFrame.BackgroundTransparency = 1
-	dragFrame.Parent = gui
-	button.Parent = dragFrame
+	local function update(input)
+		local delta = input.Position - dragStart
+		button.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+			startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	end
 	
-	dragFrame.Active = true
-	dragFrame.Draggable = true
+	button.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or
+		   input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			dragStart = input.Position
+			startPos = button.Position
+	
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragging = false
+				end
+			end)
+		end
+	end)
+	
+	button.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement or
+		   input.UserInputType == Enum.UserInputType.Touch then
+			dragInput = input
+		end
+	end)
+	
+	game:GetService("UserInputService").InputChanged:Connect(function(input)
+		if input == dragInput and dragging then
+			update(input)
+		end
+	end)
 
 	print("[DEV] 🟦 Teleport button created")
 
