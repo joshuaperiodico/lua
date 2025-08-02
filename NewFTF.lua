@@ -1211,40 +1211,50 @@ tpButton.Active = true
 tpButton.Parent = screenGui
 
 
+local function waitForHumanoidRootPart(timeout)
+	local char = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
+	local start = tick()
+	while tick() - start < (timeout or 5) do
+		local root = char:FindFirstChild("HumanoidRootPart")
+		if root then return root end
+		task.wait(0.1)
+	end
+	return nil
+end
+
 local function getBestPC()
-    local bestPC = nil
-    local shortestDistance = math.huge
-    local root = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+	local bestPCPart = nil
+	local shortestDistance = math.huge
+	local root = waitForHumanoidRootPart(5)
+	if not root then return nil end
 
-    if not root then return nil end
+	for _, model in pairs(workspace:GetDescendants()) do
+		if model:IsA("Model") and model.Name == "ComputerTable" then
+			local screen = model:FindFirstChild("ComputerScreen")
+			if screen then
+				local dist = (screen.Position - root.Position).Magnitude
+				if dist < shortestDistance then
+					bestPCPart = screen
+					shortestDistance = dist
+				end
+			end
+		end
+	end
 
-    for _, pc in pairs(workspace:GetDescendants()) do
-        if pc.Name == "ComputerTable" and pc:IsA("Model") then
-            local screen = pc:FindFirstChild("ComputerScreen")
-            if screen then
-                local dist = (screen.Position - root.Position).Magnitude
-                if dist < shortestDistance then
-                    bestPC = screen
-                    shortestDistance = dist
-                end
-            end
-        end
-    end
-
-    return bestPC
+	return bestPCPart
 end
 
 local function teleportToBestPC()
-    local char = game.Players.LocalPlayer.Character
-    local root = char and char:FindFirstChild("HumanoidRootPart")
-    local pc = getBestPC()
+	local root = waitForHumanoidRootPart(5)
+	local pcPart = getBestPC()
 
-    if root and pc then
-        root.CFrame = pc.CFrame + Vector3.new(0, 5, 0)
-    else
-        warn("❌ Could not teleport to Best PC.")
-    end
+	if root and pcPart then
+		root.CFrame = pcPart.CFrame + Vector3.new(0, 5, 0)
+	else
+		warn("❌ Could not teleport to Best PC.")
+	end
 end
+
 
 tpButton.MouseButton1Click:Connect(function()
     teleportToBestPC()
